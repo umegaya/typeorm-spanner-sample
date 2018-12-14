@@ -20,6 +20,14 @@ createConnection({
     entities: [User, Item], 
 }).then(async (c: Connection) => {
     console.log("database init");
+
+    await test_query_builder(c);
+    await test_basic_crud(c);
+
+    return c;
+});
+
+async function test_basic_crud(c: Connection) {
     //basic CRUD
     //insert, conditional update/delete/upsert
     const repo = c.getRepository(User);
@@ -64,6 +72,99 @@ createConnection({
 
     const ret6 = await repo.findOne(id);
     assert(ret6 == undefined, "object should not found");
+}
 
-    return c;
-});
+async function test_query_builder(c: Connection) {
+    await c.createQueryBuilder()
+        .delete()
+        .from(User)
+        .execute();
+
+    const NUM_RECORD = 10;
+    const ret1 = await c.createQueryBuilder()
+        .insert()
+        .into(User)
+        .values([...Array(NUM_RECORD).keys()].map((i) => {
+            const cd = (new Date('1995-12-17T03:24:00'));
+            cd.setSeconds(i);
+            return {
+                first_name: "user" + i,
+                gender: false,
+                data: Buffer.from(`buffer ${i}`),
+                latest_date: new Date(),
+                created_date: cd,
+                level: i
+            };
+        }))
+        .execute();
+
+    console.log('insert result', ret1);
+    assert(ret1.raw.length == NUM_RECORD, "record should be created");
+    
+    const ret2 = await c.createQueryBuilder()
+        .select("*")
+        .from(User, "User")
+        .where("level <= :high and level >= :low", { high: 7, low: 3 })
+        .execute();
+
+    console.log('select result', ret2);
+    assert(ret2.length == 5, "record should be selected");
+    ret2.sort((a: any, b: any) => a.level - b.level).forEach((r: User, i: number) => {
+        const idx = i + 3;
+        const cd = (new Date('1995-12-17T03:24:00'));
+        cd.setSeconds(idx);
+        assert(r.first_name == ("user" + idx), "select content should be correct");
+        assert(r.created_date.getTime() == cd.getTime(), "select content should be correct");
+        assert(r.data.toString('hex') == Buffer.from(`buffer ${idx}`).toString('hex'), 
+            `select content should be correct ${r.data} vs ${Buffer.from(`buffer ${idx}`)}`);
+    });
+
+    const ret3 = await c.createQueryBuilder()
+        .update(User)
+        .set({first_name: "hoge"})
+        .where("data = :buf1 or data = :buf2", { buf1: Buffer.from(`buffer 1`), buf2: Buffer.from(`buffer 4`)})
+        .execute();
+
+    console.log('update1', ret3);
+    assert(ret3.raw.length == 2, "correct record should select");
+
+    const ret6 = await c.createQueryBuilder()
+        .update(User)
+        .set({first_name: "fuga"})
+        .where("created_date >= :date", { date: new Date('1995-12-17T03:24:05') })
+        .execute();
+    console.log('update2', ret6);
+    assert(ret6.raw.length == 5, "correct record should select");
+
+
+    const ret4 = await c.createQueryBuilder()
+        .select("*")
+        .from(User, "User")
+        .execute();
+
+    ret4.sort((a: any, b: any) => a.level - b.level).forEach((r: User, i: number) => {
+        if (i == 1 || i == 4) {
+            assert(r.first_name == "hoge", "name should be updated correctly");
+        } else if (i >= 5) {
+            assert(r.first_name == "fuga", "name should be updated correctly");
+        } else {
+            assert(r.first_name == "user" + i, "name should be updated correctly");            
+        }
+    });
+
+    await c.createQueryBuilder()
+        .delete()
+        .from(User)
+        .where("data != :buf1 and data != :buf2", { buf1: Buffer.from(`buffer 1`), buf2: Buffer.from(`buffer 4`)})
+        .execute();
+
+    const ret5 = await c.createQueryBuilder()
+        .select("*")
+        .from(User, "User")
+        .execute();
+
+    assert(ret5.length == 2, "correct record should remain");
+    ret5.forEach((r: User, i: number) => {
+        assert(r.first_name == "hoge", "name should be updated correctly");
+    });
+}
