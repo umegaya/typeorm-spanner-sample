@@ -1,4 +1,4 @@
-import {createConnection, Connection} from "typeorm";
+import {createConnection, Connection, getManager} from "typeorm";
 import {User, Item} from "./entities";
 
 function assert(cond: boolean, msg: string) {
@@ -6,6 +6,16 @@ function assert(cond: boolean, msg: string) {
         console.log(`assertion failed(${msg}) at`, (new Error()).stack);
         process.exit(1);
     }
+}
+function random(min: number, max: number): number {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+function sleep(msec: number): Promise<void> {
+    return new Promise((res, rej) => {
+        setTimeout(res, msec);
+    });
 }
 
 createConnection({
@@ -21,11 +31,58 @@ createConnection({
 }).then(async (c: Connection) => {
     console.log("database init");
 
+    await test_tx(c);
     await test_query_builder(c);
     await test_basic_crud(c);
 
     return c;
 });
+
+async function test_tx(c: Connection) {
+    const NUM_CONCURRENCY = 10;
+    await c.createQueryBuilder()
+        .delete()
+        .from(User)
+        .execute();
+
+    const repo = c.getRepository(User);
+    const ret1 = await repo.insert({
+        first_name: "test",
+        gender: false,
+        data: Buffer.from("buffer string"),
+        latest_date: new Date(),
+        created_date: new Date('1995-12-17T03:24:00'),
+        level: 1
+    });
+    const id = ret1.raw[0].id;
+    const retrys: any[] = [];
+
+    const runInTx = async (i: number) => {
+        while (retrys[i] !== true) {
+            const cnt = retrys[i] || 0;
+            await c.transaction(async tx => {
+                console.log('start transaction', i, cnt);
+                const txrp = tx.getRepository(User);
+                const user = await txrp.findOne(id);
+                await sleep(random(1, 10) * 10);
+                await txrp.update(id, {
+                    level: user!.level + 1
+                });
+                console.log('end transaction', i, cnt);
+                retrys[i] = true;
+            }).catch(e => {
+                // retry
+                console.log('transaction error', i, cnt);
+                retrys[i] = cnt + 1; 
+            });
+        }
+    }
+    await Promise.all([...Array(NUM_CONCURRENCY).keys()].map(runInTx));
+    console.log('tx array finished', retrys);
+    const user = await repo.findOne(id);    
+    assert(!!user && (user.level == (1 + NUM_CONCURRENCY)), `all update should take effect ${user && user.level}`);
+    console.log('tx array test done');
+}
 
 async function test_basic_crud(c: Connection) {
     //basic CRUD
