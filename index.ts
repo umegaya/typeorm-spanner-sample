@@ -24,7 +24,7 @@ createConnection({
     instanceId: "gp01-spanner-database",
     database: "test",
     dropSchema: false,
-    migrationsRun: true,
+    migrationsRun: false,
     synchronize: true,
     logging: "all", //["info", "query", "log"],
     entities: [User, Item], 

@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "typeorm": "file:../typeorm/build/compiled/src"
+    "typeorm": "git://github.com/umegaya/typeorm-spanner-package#16634670"
   }
 }
