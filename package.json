@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "sql-ddl-to-json-schema": "^2.2.0",
     "typeorm": "git://github.com/umegaya/typeorm-spanner-package#16634670"
   }
 }
