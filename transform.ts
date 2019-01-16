@@ -7,7 +7,7 @@ const parserFactory = require('sql-ddl-to-json-schema');
 const sqls = [
 	"CREATE TABLE `Trend` (" + 
 	"	`id` varchar(255) NOT NULL," + 
-	"	`date` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)," +
+	"	`date` datetime(6) NULL DEFAULT CURRENT_TIMESTAMP(6)," +
 	"	`disable` enum ('False', 'True', '0', '1') NOT NULL DEFAULT 'False'," + 
 	"	`manage_user_id` varchar(127) NOT NULL, " + 
 	"	`comment` varchar(255) NULL, " + 
@@ -40,7 +40,7 @@ const sqls = [
 
 const fixtures = [
     [
-        `CREATE TABLE Trend (id string(255) NOT NULL,date timestamp NOT NULL ,disable string(max) NOT NULL ,manage_user_id string(127) NOT NULL,comment string(255) NULL,query string(255) NULL) PRIMARY KEY (id);`, 
+        `CREATE TABLE Trend (id string(255) NOT NULL,date timestamp  ,disable string(max) NOT NULL ,manage_user_id string(127) NOT NULL,comment string(255) NULL,query string(255) NULL) PRIMARY KEY (id);`, 
         `{"Trend":{"date":{"type":"default","value":"\\"CURRENT_TIMESTAMP(6)\\""},"disable":{"type":"default","value":"\\"False\\""}}}`,
     ],
     [
