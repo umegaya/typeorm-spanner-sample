@@ -31,10 +31,10 @@ createConnection({
 }).then(async (c: Connection) => {
     console.log("database init");
 
+    await test_basic_crud(c);
+    await test_query_builder(c);
     await test_tx_auto_retry(c);
     await test_tx_manual_retry(c);
-    await test_query_builder(c);
-    await test_basic_crud(c);
 
     return c;
 });
@@ -142,8 +142,7 @@ async function test_basic_crud(c: Connection) {
         first_name: "tommy",
         gender: false,
         data: Buffer.from("buffer string"),
-        latest_date: new Date(),
-        created_date: new Date('1995-12-17T03:24:00')
+        latest_date: new Date('1997-12-17T03:24:00')
     });
     console.log('insert result', ret1.raw[0]);
     assert(ret1.raw[0].id, "id should set");
@@ -155,6 +154,7 @@ async function test_basic_crud(c: Connection) {
     console.log('ret2', ret2);
     if (ret2 != undefined) {
         assert(ret2.id == id, "object should correct");    
+        assert((Date.now() - ret2.created_date.getTime()) < 2000, "created_date should set");
         assert(ret2.first_name == "tommy", "object should correct");
     } else {
         assert(false, "object should found");
@@ -165,10 +165,11 @@ async function test_basic_crud(c: Connection) {
     });
     console.log(ret3);
 
-    const ret4 = await repo.findOne(id);
+    const ret4 = await repo.findOne({id});
     assert(ret4 != undefined, "object should found");
     if (ret4 != undefined) {
         assert(ret4.first_name == "john", "object should update");
+        assert((Date.now() - ret4.latest_date.getTime()) < 2000, "object should update");
     } else {
         assert(false, "object should found");        
     }

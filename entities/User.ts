@@ -1,4 +1,4 @@
-import {Entity, PrimaryGeneratedColumn, Column, Index} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, UpdateDateColumn, CreateDateColumn, Index} from "typeorm";
 
 //must specify entity name to work with minify correctly.
 @Entity('User')
@@ -25,9 +25,9 @@ export class User {
     @Column({type: 'bytes', nullable: true})
     data: Buffer;
 
-	@Column({precision: 6, type: 'timestamp', nullable: true})
+    @UpdateDateColumn({precision: 6, type: 'timestamp', nullable: true})
 	latest_date: Date;
 
-	@Column({precision: 6, type: 'timestamp', nullable: true})
+	@CreateDateColumn({precision: 6, type: 'timestamp', nullable: true, default: "spanner.commit_timestamp()"})
     created_date: Date;
 }

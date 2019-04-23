@@ -1,10 +1,10 @@
 CRED=
-NODE=$(shell n bin 8.11.4)
+NODE=$(shell n bin 10.14.2)
 
 .PHONY: test
 test:
 	GOOGLE_APPLICATION_CREDENTIALS=$(CRED) $(NODE) ./build/compiled/index.js
-	$(NODE) ./build/compiled/transform.js
+	#$(NODE) ./build/compiled/transform.js
 
 
 dev:
