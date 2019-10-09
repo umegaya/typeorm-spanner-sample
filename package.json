@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "sql-ddl-to-json-schema": "^2.2.0",
-    "typeorm": "git://github.com/umegaya/typeorm-spanner-package#e898e2b"
+    "tslib": "^1.10.0",
+    "typeorm": "git://github.com/umegaya/typeorm-spanner-package#781a4c4",
+    "typescript": "^3.0.3"
   }
 }
