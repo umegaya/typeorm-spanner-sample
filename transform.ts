@@ -5,7 +5,7 @@ const parserFactory = require('sql-ddl-to-json-schema');
 
 
 const sqls = [
-	"ALTER TABLE `User` CHANGE `latest_date` `latest_date` int NOT NULL;",
+	"ALTER TABLE `User` CHANGE `latest_date` `latest_date` int;",
 	"CREATE TABLE `Trend` (" + 
 	"	`id` varchar(255) NOT NULL," + 
 	"	`date` datetime(6) NULL DEFAULT CURRENT_TIMESTAMP(6)," +
@@ -31,6 +31,7 @@ const sqls = [
 	"RENAME TABLE `User` to `User2`;", 
 	"ALTER TABLE `User` DROP `latest_date`;",
 	"ALTER TABLE `User` MODIFY `latest_date` int(11) NOT NULL;",
+	"ALTER TABLE `User` CHANGE `latest_date` `latest_date` int(11) NOT NULL;",
 	"ALTER TABLE `User` CHANGE `latest_date` `last_date` timestamp(6) NOT NULL;",
 	"ALTER TABLE `User` ADD FULLTEXT INDEX latest_date_and_id(`id`, `latest_date`);",
 	"ALTER TABLE `User` ADD UNIQUE INDEX latest_date_and_id(`id`, `latest_date`);",
@@ -55,7 +56,8 @@ const fixtures = [
     `DROP TABLE User`,
     `RENAME TABLE User TO User2`,
     `ALTER TABLE User DROP COLUMN latest_date`,
-    `ALTER TABLE User ALTER COLUMN latest_date int64`,
+    `ALTER TABLE User ALTER COLUMN latest_date int64 NOT NULL`,
+    `ALTER TABLE User ALTER COLUMN latest_date int64 NOT NULL`,
     new Error("changing column name latest_date => last_date is not supported"),
     `CREATE INDEX latest_date_and_id ON User(id,latest_date)`,
     `CREATE UNIQUE INDEX User_idx_id_latest_date ON User(id,latest_date)`,
