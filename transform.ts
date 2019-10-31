@@ -5,6 +5,7 @@ const parserFactory = require('sql-ddl-to-json-schema');
 
 
 const sqls = [
+	"ALTER TABLE `Friend` ADD `status` int NULL DEFAULT 0;",
 	"ALTER TABLE `User` CHANGE `latest_date` `latest_date` int;",
 	"CREATE TABLE `Trend` (" + 
 	"	`id` varchar(255) NOT NULL," + 
@@ -42,6 +43,10 @@ const sqls = [
 ];
 
 const fixtures = [
+    [
+    	`ALTER TABLE Friend ADD COLUMN status int64`,
+    	`{"Friend":{"status":{"type":"default","value":"0"}}}`
+    ],
     `ALTER TABLE User ALTER COLUMN latest_date int64`,
     [
         `CREATE TABLE Trend (id string(255) NOT NULL,date timestamp  ,disable string(max) NOT NULL ,disable2 bool NOT NULL ,manage_user_id string(127) NOT NULL,comment string(255) ,query string(255) ) PRIMARY KEY (id);`, 
@@ -103,7 +108,7 @@ for (const sql of sqls) {
 			}
 			console.log(`error intended but message differs: [${f.message.trim()}]/[${e.message.trim()}]`);
 		} else {
-			console.log(`unexpected error: ${e.message}`);
+			console.log(`unexpected error: ${e.message} ${e.stack}`);
 		}
 		process.exit(1);
 	}
